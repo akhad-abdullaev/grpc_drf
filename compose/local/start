@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# Run Django migrations
+python manage.py migrate
+
+# Start the gRPC server in the background
+python grpc_server.py &
+
+# Start the Django development server
+python manage.py runserver 0.0.0.0:8000
+
+# python -m grpc_tools.protoc -I/app --python_out=/app --grpc_python_out=/app /app/example.proto
+
+python -m grpc_tools.protoc -I/app --python_out=/app --grpc_python_out=/app /app/product.proto

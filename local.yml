@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile  # Ensure this path is correct
+    image: testproj_django
+    container_name: grpc_proect_django
+    depends_on:
+      - postgres
+    volumes:
+      - .:/app:cached
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres  # Ensure your PostgreSQL credentials are here
+    ports:
+      - "8000:8000"  # Django runs on this port
+      - "50051:50051"  # Expose gRPC port
+    command: /start  # Ensure that your /start script runs both Django and the gRPC server
+    environment:
+      - DEBUG=1
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile  # Ensure this path is correct
+    image: testproj_postgres
+    container_name: grpc_proect_postgres
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data:cached
+      - local_postgres_data_backups:/backups:cached
+    env_file:
+      - ./.envs/.local/.postgres  # Ensure this file contains correct PostgreSQL settings like DB name, user, password
